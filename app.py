@@ -92,7 +92,7 @@ def main() -> None:
     # Polls the bot
     # print('Polling..')
     # app.run_polling(poll_interval=3)
-
+    print(URL)
     app.run_webhook(listen='0.0.0.0', port=5000, url_path=f'{URL}{TOKEN}')
 
 
