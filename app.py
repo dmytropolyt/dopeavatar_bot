@@ -1,6 +1,6 @@
 import re
 
-from telebot.credentials import bot_token, bot_user_name, api_key
+from telebot.credentials import bot_token, bot_user_name, api_key, URL
 
 import telegram
 from telegram import Update
@@ -59,7 +59,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         text = re.sub(r'\W', '_', text)
-        url = f"https://api.multiavatar.com/{text}.png?apikey={}"
+        url = f"https://api.multiavatar.com/{text}.png?apikey={api_key}"
         await context.bot.send_photo(chat_id=chat_id, photo=url, reply_to_message_id=message_id)
     except Exception:
         raise Exception
@@ -77,6 +77,8 @@ if __name__ == '__main__':
     print('starting bot')
     app = Application.builder().token(TOKEN).build()
 
+    webhook_url = URL
+    bot.setWebhook(webhook_url)
     # Commands
     app.add_handler(CommandHandler('start', start_command))
     app.add_handler(CommandHandler('help', help_command))
