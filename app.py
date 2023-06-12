@@ -78,8 +78,6 @@ def main() -> None:
     print('starting bot')
     app = Application.builder().token(TOKEN).build()
 
-    webhook_url = URL
-    bot.setWebhook(webhook_url)
     # Commands
     app.add_handler(CommandHandler('start', start_command))
     app.add_handler(CommandHandler('help', help_command))
