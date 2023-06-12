@@ -90,8 +90,8 @@ def main() -> None:
     app.add_error_handler(error)
 
     # Polls the bot
-    print('Polling..')
-    app.run_polling(poll_interval=3)
+    # print('Polling..')
+    # app.run_polling(poll_interval=3)
 
     app.run_webhook(listen='0.0.0.0', port=5000, url_path=f'{URL}{TOKEN}')
 
