@@ -1,65 +1,93 @@
 import re
 
-from flask import Flask, request
+from telebot.credentials import bot_token, bot_user_name, api_key
 
 import telegram
-from telebot.credentials import bot_token, bot_user_name, URL
+from telegram import Update
+from telegram.ext import (
+    Application, CommandHandler,
+    MessageHandler, filters, ContextTypes
+)
 
 
-global bot
-global TOKEN
 TOKEN = bot_token
+USER = bot_user_name
+
 bot = telegram.Bot(token=TOKEN)
 
-app = Flask(__name__)
+
+# Commands
+async def start_command(
+        update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    await update.message.reply_text('Hello! Welcome to dopeavatar bot!')
 
 
-@app.route('/{}'.format(TOKEN), methods=['POST'])
-def respond():
-    update = telegram.Update.de_json(request.get_json(force=True), bot)
-
-    chat_id = update.message.chat.id
-    msg_id = update.message.message_id
-
-    text = update.message.text.encode('utf-8').decode()
-
-    # For debug
-    print('got text message : ', text)
-    if text == '/start':
-        bot_welcome = "Welcome to DopeAvatar bot!"
-        bot.sendMessage(chat_id=chat_id, text=bot_welcome, reply_to_message_id=msg_id)
-
-    else:
-        try:
-            text = re.sub(r'\W', '_', text)
-            url = "https://api.adorable.io/avatars/285/{}.png".format(text.strip())
-            bot.sendPhoto(chat_id=chat_id, photo=url, reply_to_message_id=msg_id)
-        except Exception:
-            bot.sendMessage(
-                chat_id=chat_id,
-                text="There was a problem in the name you used, please enter different name",
-                reply_to_message_id=msg_id
-            )
-
-    return 'ok'
+async def help_command(
+        update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    await update.message.reply_text(
+        'Want some rap? Please type something and I will create avatar for you!'
+    )
 
 
-@app.route('/webhook', methods=['GET', 'POST'])
-def set_webhook():
-    # we use the bot object to link the bot to our app which live
-    # in the link provided by URL
-    s = bot.setWebhook('{URL}{HOOK}'.format(URL=URL, HOOK=TOKEN))
-
-    if s:
-        return 'webhook setup ok'
-    else:
-        return 'webhook setup failed'
+async def custom_command(
+        update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    await update.message.reply_text('This is a custom command!')
 
 
-@app.route('/')
-def index():
-    return '.'
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message_type: str = update.message.chat.type
+    text: str = update.message.text
+    chat_id: int = update.message.chat.id
+    message_id: int = update.message.message_id
+
+    print(f'User ({update.message.chat.id}) in {message_type}: "{text}"')
+
+    if message_type == 'group':
+        if USER in text:
+            text: str = text.replace(USER, '').strip()
+
+    text = text.lower()
+
+    if 'hello' in text:
+        response: str = 'Hey there!'
+
+    if 'how are you' in text:
+        response: str = 'I am good!'
+
+    try:
+        text = re.sub(r'\W', '_', text)
+        url = f"https://api.multiavatar.com/{text}.png?apikey={}"
+        await context.bot.send_photo(chat_id=chat_id, photo=url, reply_to_message_id=message_id)
+    except Exception:
+        raise Exception
+        response: str = 'I do not understand what you wrote!'
+
+    print('Bot:', response)
+    await update.message.reply_text(response)
+
+
+async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(f'Update {update} caused error {context.error}')
 
 
 if __name__ == '__main__':
-    app.run(threaded=True)
+    print('starting bot')
+    app = Application.builder().token(TOKEN).build()
+
+    # Commands
+    app.add_handler(CommandHandler('start', start_command))
+    app.add_handler(CommandHandler('help', help_command))
+    app.add_handler(CommandHandler('custom', custom_command))
+
+    # Messages
+    app.add_handler(MessageHandler(filters.TEXT, handle_message))
+
+    # Error
+    app.add_error_handler(error)
+
+    # Polls the bot
+    print('Polling..')
+    app.run_polling(poll_interval=3)
