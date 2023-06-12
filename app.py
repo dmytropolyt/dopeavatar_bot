@@ -93,7 +93,7 @@ def main() -> None:
     # print('Polling..')
     # app.run_polling(poll_interval=3)
     # app.bot.setWebhook(f'{URL}{TOKEN}')
-    app.run_webhook(listen='0.0.0.0', port=8443, url_path=f'{URL}{TOKEN}')
+    app.run_webhook(listen='0.0.0.0', port=8443, url_path=TOKEN, webhook_url=f'{URL}{TOKEN}')
 
 
 if __name__ == '__main__':
