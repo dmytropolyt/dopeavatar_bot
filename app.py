@@ -73,7 +73,8 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'Update {update} caused error {context.error}')
 
 
-if __name__ == '__main__':
+def main() -> None:
+    """Start the bot."""
     print('starting bot')
     app = Application.builder().token(TOKEN).build()
 
@@ -93,3 +94,9 @@ if __name__ == '__main__':
     # Polls the bot
     print('Polling..')
     app.run_polling(poll_interval=3)
+
+    app.run_webhook(listen='0.0.0.0', port=5000, url_path=f'{URL}{TOKEN}')
+
+
+if __name__ == '__main__':
+    main()
